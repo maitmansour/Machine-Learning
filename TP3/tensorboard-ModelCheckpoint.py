@@ -13,8 +13,10 @@ from keras.optimizers import SGD
 from keras.utils import np_utils
 # import mnist dataset
 from keras.datasets import mnist
-from keras.callbacks import TensorBoard
 from time import gmtime, strftime
+
+# import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint
 
 # Load mnist dataset (the data, shuffled and split between train and test sets)
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -46,19 +48,15 @@ model.add(Dense(10, activation='softmax'))
 # Compilation
 model.compile(optimizer='sgd',loss='categorical_crossentropy',metrics=['accuracy'])
 
-tensorboard = TensorBoard(log_dir="logs/{}".format(strftime("%Y-%m-%d %H:%M:%S", gmtime())),histogram_freq=0, write_graph=True, write_images=True)
+# checkpoint
+filepath="ModelCheckpoint/weights.best.hdf5"
+checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+callbacks_list = [checkpoint]
 
+# Fit the model
 # Using batches to get better results
 history = model.fit(x_train, y_train,
 					batch_size=490,
                     epochs=25,
                     verbose=1,
-                    validation_data=(x_test, y_test), callbacks=[tensorboard])
-
-
-score = model.evaluate(x_test, y_test, verbose=0)
-print('Test loss:', score[0])
-print('Test accuracy:', score[1])
-
-# Test loss: 0.4211650045061563
-# Test accuracy: 0.9644
+                    validation_data=(x_test, y_test), callbacks=callbacks_list)
